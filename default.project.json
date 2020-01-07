@@ -1,0 +1,73 @@
+{
+    "name": "melongine",
+    "servePort": 34872,
+    "tree": {
+        "$className": "DataModel",
+        "HttpService": {
+            "$className": "HttpService",
+            "$properties": {
+                "HttpEnabled": true
+            }
+        },
+        "ReplicatedStorage": {
+            "$className": "ReplicatedStorage",
+            "Modules": {
+                "$path": "Shared"
+            },
+            "Remotes": {
+                "$className": "Folder",
+                "Connect": {
+                    "$className": "RemoteEvent"
+                }
+            },
+            "Assets": {
+                "$className": "Folder"
+            },
+            "SharedData": {
+                "$className": "Folder"
+            },
+            "Gui": {
+                "$className": "Folder"
+            },
+            "Sounds": {
+                "$className": "Folder"
+            }
+        },
+        "ServerScriptService": {
+            "$className": "ServerScriptService",
+            "Server": {
+                "$path": "Server"
+            }
+        },
+        "ServerStorage": {
+            "$className": "ServerStorage",
+            "Assets": {
+                "$className": "Folder"
+            },
+            "ServerData": {
+                "$className": "Folder",
+                "GamePasses": {
+                    "$className": "Folder"
+                }
+            }
+        },
+        "StarterGui": {
+            "$className": "StarterGui",
+            "GameGui": {
+                "$className": "ScreenGui",
+                "$properties": {
+                    "ResetOnSpawn": false
+                }
+            }
+        },
+        "StarterPlayer": {
+            "$className": "StarterPlayer",
+            "StarterPlayerScripts": {
+                "$className": "StarterPlayerScripts",
+                "Client": {
+                    "$path": "Client"
+                }
+            }
+        }
+    }
+}
