@@ -1,4 +1,4 @@
-return function(ReplicatedModules)
+return function(Modules, ReplicatedModules)
 	local public = {}
 	public.__index = public
 

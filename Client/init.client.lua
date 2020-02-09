@@ -23,73 +23,57 @@
 
 --]]
 local ClientModules = {}
-ClientModules.Functions = {}
 local ReplicatedModules = {}
-ReplicatedModules.Functions = {}
+local AllModules = {}
 
 math.randomseed(tick())
 
--- Adding all replicated modules
-for _, module in pairs(game.ReplicatedStorage.Modules:GetChildren()) do
-	if module:IsA("ModuleScript") then
-		ReplicatedModules[module.Name] = require(module)(ReplicatedModules)
+local function recursiveTree(instance, reference)
+	for _, obj in pairs(instance) do
+		if not reference[obj.Name] then
+			if obj:IsA("Folder") then
+				reference[obj.Name] = {}
+				recursiveTree(obj:GetChildren(), reference[obj.Name])
+			elseif obj:IsA("ModuleScript") then
+				reference[obj.Name] = require(obj)(ClientModules, ReplicatedModules)
+				table.insert(AllModules, reference[obj.Name])
+			end
+		else
+			error("There already is an instance of " .. obj.Name)
+		end
 	end
-end
--- Add the replicated functions
-for _, func in pairs(game.ReplicatedStorage.Modules.Functions:GetChildren()) do
-	ReplicatedModules.Functions[func.Name] = require(func)
 end
 
--- Adding all public tables into the AllModules table
-for _, module in pairs(script:GetChildren()) do
-	if module:IsA("ModuleScript") then
-		ClientModules[module.Name] = require(module)(ClientModules, ReplicatedModules)
-	end
-end
--- Add the client functions
-for _, func in pairs(script.Functions:GetChildren()) do
-	ClientModules.Functions[func.Name] = require(func)
-end
+recursiveTree(game.ReplicatedStorage.Modules:GetChildren(), ReplicatedModules)
+recursiveTree(script:GetChildren(), ClientModules)
 
 -- Run the awake code
-for _, module in pairs(ReplicatedModules) do
+for _, module in pairs(AllModules) do
 	if module.Awake then
 		module.Awake()
 	end
 end
--- Run the awake code
-for _, module in pairs(ClientModules) do
-	if module.Awake then
-		module.Awake()
-	end
-end
-
 -- Run the init code
-for _, module in pairs(ReplicatedModules) do
-	if module.Init then
-		module.Init()
-	end
-end
-for _, module in pairs(ClientModules) do
-	if module.Init then
+for _, module in pairs(AllModules) do
+	if module.Init and module.Enabled then
 		module.Init()
 	end
 end
 
 -- BindToRenderStep before anything
-for name, module in pairs(ClientModules) do
+for name, module in pairs(AllModules) do
 	if module.EarlyUpdate then
 		game:GetService("RunService"):BindToRenderStep(name .. "_EU", Enum.RenderPriority.First.Value, module.EarlyUpdate)
 	end
 end
 -- BindToRenderStep after input
-for name, module in pairs(ClientModules) do
+for name, module in pairs(AllModules) do
 	if module.Update then
 		game:GetService("RunService"):BindToRenderStep(name .. "_U", Enum.RenderPriority.Input.Value + 1, module.Update)
 	end
 end
 -- BindToRenderStep as last
-for name, module in pairs(ClientModules) do
+for name, module in pairs(AllModules) do
 	if module.LateUpdate then
 		game:GetService("RunService"):BindToRenderStep(name .. "_LU", Enum.RenderPriority.Last.Value, module.LateUpdate)
 	end

@@ -35,10 +35,10 @@ return function(Modules, ReplicatedModules)
 	function RemoteClass:New(owner)
 		local o = {}
 		o.Owner = owner
-		o.Key = Modules.Functions.RandomKey(15)
+		o.Key = ReplicatedModules.Functions.Keys.GetUnique(15)
 		o.Functions = {}
 		o.RemoteFunction = Instance.new("RemoteFunction")
-		o.RemoteFunction.Name = Modules.Functions.RandomKey(15)
+		o.RemoteFunction.Name = ReplicatedModules.Functions.Keys.GetUnique(15)
 		o.RemoteFunction.Parent = game.ReplicatedStorage.Remotes
 
 		o.RemoteFunction.OnServerInvoke = function(player, key, ...)
@@ -60,7 +60,7 @@ return function(Modules, ReplicatedModules)
 
 	function RemoteClass:Verify(key)
 		local r = self.Key == key
-		self.Key = Modules.Functions.RandomKey(15)
+		self.Key = ReplicatedModules.Functions.Keys.GetUnique(15)
 		return r
 	end
 
@@ -86,7 +86,7 @@ return function(Modules, ReplicatedModules)
 	function public.CreateRemote(tag)
 		if not ServerRemotes[tag] then
 			local NewRemote = Instance.new("RemoteEvent")
-			NewRemote.Name = Modules.Functions.RandomKey(15)
+			NewRemote.Name = ReplicatedModules.Functions.Keys.GetUnique(15)
 			NewRemote.Parent = game.ReplicatedStorage.Remotes
 			NewRemote.OnServerEvent:Connect(function(player)
 				player:Kick("404 not found")

@@ -12,53 +12,39 @@
 --]]
 
 local ServerModules = {}
-ServerModules.Functions = {}
 local ReplicatedModules = {}
-ReplicatedModules.Functions = {}
+
+local AllModules = {}
 
 math.randomseed(tick())
 
--- Adding all replicated modules
-for _, module in pairs(game.ReplicatedStorage.Modules:GetChildren()) do
-	if module:IsA("ModuleScript") then
-		ReplicatedModules[module.Name] = require(module)(ReplicatedModules)
+local function recursiveTree(instance, reference)
+	for _, obj in pairs(instance) do
+		if not reference[obj.Name] then
+			if obj:IsA("Folder") then
+				reference[obj.Name] = {}
+				recursiveTree(obj:GetChildren(), reference[obj.Name])
+			elseif obj:IsA("ModuleScript") then
+				reference[obj.Name] = require(obj)(ServerModules, ReplicatedModules)
+				table.insert(AllModules, reference[obj.Name])
+			end
+		else
+			error("There already is an instance of " .. obj.Name)
+		end
 	end
-end
--- Add the replicated functions
-for _, func in pairs(game.ReplicatedStorage.Modules.Functions:GetChildren()) do
-	ReplicatedModules.Functions[func.Name] = require(func)
 end
 
--- Adding all public tables into the AllModules table
-for _, module in pairs(script:GetChildren()) do
-	if module:IsA("ModuleScript") then
-		ServerModules[module.Name] = require(module)(ServerModules, ReplicatedModules)
-	end
-end
--- Add the server functions
-for _, func in pairs(script.Functions:GetChildren()) do
-	ServerModules.Functions[func.Name] = require(func)
-end
+recursiveTree(game.ReplicatedStorage.Modules:GetChildren(), ReplicatedModules)
+recursiveTree(script:GetChildren(), ServerModules)
 
 -- Run the awake code
-for _, module in pairs(ReplicatedModules) do
-	if module.Awake then
-		module.Awake()
-	end
-end
--- Run the awake code
-for _, module in pairs(ServerModules) do
+for _, module in pairs(AllModules) do
 	if module.Awake then
 		module.Awake()
 	end
 end
 -- Run the init code
-for _, module in pairs(ReplicatedModules) do
-	if module.Init and module.Enabled then
-		module.Init()
-	end
-end
-for _, module in pairs(ServerModules) do
+for _, module in pairs(AllModules) do
 	if module.Init and module.Enabled then
 		module.Init()
 	end

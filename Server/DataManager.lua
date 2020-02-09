@@ -8,6 +8,12 @@ return function(Modules, ReplicatedModules)
 	local PlayerAddedBindings = {}
 	local PlayerDatas = {}
 
+	function public.Awake()
+		Modules.Remotes.CreateRemote("UpdateStats")
+		Modules.Remotes.CreateRemote("GameEffects")
+		Modules.Remotes.CreateRemote("Notifications")
+	end
+
 	function public.Init()
 		public.BindToPlayerAdded(private.PlayerJoined)
 
@@ -20,9 +26,6 @@ return function(Modules, ReplicatedModules)
 				f(player)
 			end
 		end)
-		Modules.Remotes.CreateRemote("UpdateStats")
-		Modules.Remotes.CreateRemote("GameEffects")
-		Modules.Remotes.CreateRemote("Notifications")
 
 		game.Players.PlayerRemoving:Connect(function(player)
 			public.SaveData(player)

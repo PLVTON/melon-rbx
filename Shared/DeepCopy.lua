@@ -1,4 +1,4 @@
-return function()
+return function(Modules, ReplicatedModules)
 	local public = {}
 	local private = {}
 

@@ -11,8 +11,6 @@ return function(Modules, ReplicatedModules)
 	private.MAX_TRIES = 4
 	private.RETRY_TIME = 5
 
-	local DATE = ReplicatedModules.Functions.GetDate()
-
 	local LoadedDataStores = {PlayerData = DataStoreService:GetDataStore("PlayerData_alpha9")}
 
 	function public.LoadData(index, userId)
