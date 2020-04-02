@@ -26,7 +26,7 @@ return function(Modules, ReplicatedModules)
 
 		function public.Awake()
 			game.ReplicatedStorage.Remotes.Connect:FireServer()
-			private.Index, private.Server = game.ReplicatedStorage.Remotes.Connect.OnClientEvent:Wait()
+			private.Index, private.Server, private.Risky = game.ReplicatedStorage.Remotes.Connect.OnClientEvent:Wait()
 		end
 
 		function public.Start()
@@ -47,6 +47,18 @@ return function(Modules, ReplicatedModules)
 				FireRequests[tag] = false
 			end
 			return extraData
+		end
+
+		function public.FireRisky(tag, ...)
+			if private.Risky[tag] then
+				private.Risky[tag].RemoteEvent:FireServer(...)
+			end
+		end
+
+		function public.BindRisky(tag, func)
+			if private.Risky[tag] then
+				private.Risky[tag].RemoteEvent.OnClientEvent:Connect(func)
+			end
 		end
 
 		function public.FireQueued(tag, ...)

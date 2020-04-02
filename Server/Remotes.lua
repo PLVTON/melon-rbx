@@ -15,6 +15,11 @@
 	FireRemoteAll(tag, ...):
 		Fires a server remote to ever player, with additional parameters.
 
+	CreateRiskyClientRemote(tag):
+		Creates a remote for unsafe use from client to server. This is mostly used to share data that is more or less important
+		to be secure.
+
+
 --]]
 
 local required = false
@@ -26,6 +31,7 @@ return function(Modules, ReplicatedModules)
 
 	local Connections = {}
 	local ClientRemotes = {}
+	local RiskyClientRemotes = {}
 	local ServerRemotes = {}
 	local PlayersRemotes = {}
 
@@ -35,7 +41,7 @@ return function(Modules, ReplicatedModules)
 	function RemoteClass:New(owner)
 		local o = {}
 		o.Owner = owner
-		o.Key = ReplicatedModules.Functions.Keys.GetUnique(15)
+		o.Key = ReplicatedModules.Functions.Keys.Get(15)
 		o.Functions = {}
 		o.RemoteFunction = Instance.new("RemoteFunction")
 		o.RemoteFunction.Name = ReplicatedModules.Functions.Keys.GetUnique(15)
@@ -60,7 +66,7 @@ return function(Modules, ReplicatedModules)
 
 	function RemoteClass:Verify(key)
 		local r = self.Key == key
-		self.Key = ReplicatedModules.Functions.Keys.GetUnique(15)
+		self.Key = ReplicatedModules.Functions.Keys.Get(15)
 		return r
 	end
 
@@ -75,11 +81,58 @@ return function(Modules, ReplicatedModules)
 		end
 	end
 
+	function public.CreateRiskyClientRemote(tag, func)
+		if not RiskyClientRemotes[tag] then
+			local NewRemote = Instance.new("RemoteEvent")
+			NewRemote.Name = ReplicatedModules.Functions.Keys.GetUnique(15)
+			NewRemote.Parent = game.ReplicatedStorage.Remotes
+			NewRemote.OnServerEvent:Connect(function(player, ...)
+				for _, f in pairs(RiskyClientRemotes[tag].Functions) do
+					f(player, ...)
+				end
+			end)
+			RiskyClientRemotes[tag] = {Tag = tag, Functions = {}, RemoteEvent = NewRemote}
+			if func then
+				table.insert(RiskyClientRemotes[tag].Functions, func)
+			end
+		else
+			error("Remote index already in use")
+		end
+	end
+
 	function public.BindClientRemote(tag, func)
 		if ClientRemotes[tag] then
 			table.insert(ClientRemotes[tag].Functions, func)
 		else
 			error("Remote cannot be bind because it doesn't exist")
+		end
+	end
+
+	function public.BindRiskyClientRemote(tag, func)
+		if RiskyClientRemotes[tag] then
+			table.insert(RiskyClientRemotes[tag].Functions, func)
+		else
+			error("Remote cannot be bind because it doesn't exist")
+		end
+	end
+
+	function public.FireRiskyRemote(tag, player, ...)
+		if RiskyClientRemotes[tag] then
+			RiskyClientRemotes[tag].RemoteEvent:FireClient(player, ...)
+		else
+			error("Remote can't be fired because it's index is inexistant")
+		end
+	end
+
+	function public.FireRiskyRemoteExcept(tag, exceptPlayer, ...)
+		if RiskyClientRemotes[tag] then
+			for _, player in pairs(game.Players:GetPlayers()) do
+				if player ~= exceptPlayer then
+					RiskyClientRemotes[tag].RemoteEvent:FireClient(player, ...)
+				end
+			end
+		else
+			error("Remote can't be fired because it's index is inexistant")
 		end
 	end
 
@@ -137,7 +190,7 @@ return function(Modules, ReplicatedModules)
 
 				PlayersRemotes[player] = PlayerRemotes
 
-				game.ReplicatedStorage.Remotes.Connect:FireClient(player, PlayerRemotes, ServerRemotes)
+				game.ReplicatedStorage.Remotes.Connect:FireClient(player, PlayerRemotes, ServerRemotes, RiskyClientRemotes)
 			end
 		else
 			player:Kick("403 access token is not valid")
